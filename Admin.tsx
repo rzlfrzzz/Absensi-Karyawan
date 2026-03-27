@@ -11,7 +11,7 @@ export default function Admin() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filterDate, setFilterDate] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('All'); // State baru untuk filter Masuk/Pulang
+  const [filterType, setFilterType] = useState('All'); // State Filter Baru
   
   const [lang, setLang] = useState<'ID' | 'CN'>('ID');
 
@@ -26,13 +26,16 @@ export default function Admin() {
       shiftMalam: "Shift Malam",
       btnSave: "Simpan Data",
       btnProcess: "Memproses...",
-      listTitle: "Kontrol Filter",
+      listTitle: "Daftar Karyawan",
       members: "Anggota",
       colName: "Nama",
       colShift: "Shift",
       colOpt: "Opsi",
       historyTitle: "Riwayat Absensi",
       searchPlace: "Cari Nama...",
+      filterAll: "Semua Tipe",
+      filterIn: "Masuk",
+      filterOut: "Pulang",
       colVisual: "Visual",
       colInfo: "Informasi",
       colTime: "Waktu & Tipe",
@@ -45,10 +48,7 @@ export default function Admin() {
       successAdd: "Berhasil terdaftar",
       deleted: "Terhapus!",
       refresh: "Segarkan",
-      all: "Semua Tipe",
-      typeIn: "Masuk",
-      typeOut: "Pulang",
-      totalRow: "Total Karyawan Unik"
+      csvTotal: "Total Karyawan Unik"
     },
     CN: {
       back: "后台",
@@ -60,13 +60,16 @@ export default function Admin() {
       shiftMalam: "晚班",
       btnSave: "保存数据",
       btnProcess: "处理中...",
-      listTitle: "筛选控制",
+      listTitle: "员工名单",
       members: "成员",
       colName: "姓名",
       colShift: "班次",
       colOpt: "操作",
       historyTitle: "出勤记录",
       searchPlace: "搜索姓名...",
+      filterAll: "所有类型",
+      filterIn: "上班",
+      filterOut: "下班",
       colVisual: "照片",
       colInfo: "员工信息",
       colTime: "时间与类型",
@@ -79,10 +82,7 @@ export default function Admin() {
       successAdd: "注册成功",
       deleted: "已删除！",
       refresh: "刷新",
-      all: "所有类型",
-      typeIn: "上班",
-      typeOut: "下班",
-      totalRow: "唯一员工总数"
+      csvTotal: "唯一员工总数"
     }
   };
 
@@ -101,12 +101,7 @@ export default function Admin() {
     e.preventDefault();
     setIsSubmitting(true);
     const { nama, pin, shift } = e.target.elements;
-    
-    const { error } = await supabase.from('karyawan').insert([{ 
-      nama: nama.value, 
-      pin: pin.value, 
-      shift: shift.value 
-    }]);
+    const { error } = await supabase.from('karyawan').insert([{ nama: nama.value, pin: pin.value, shift: shift.value }]);
 
     if (!error) {
       Swal.fire({
@@ -147,27 +142,21 @@ export default function Admin() {
 
   const exportToCSV = () => {
     // Header sesuai bahasa
-    const headers = [t[lang].colName, 'Tipe', 'Jam', 'Status', 'Tanggal'];
+    const headers = [t[lang].colName, 'Type', 'Time', 'Status', 'Date'];
     
-    // Konversi tipe log sesuai bahasa
     const csvData = filteredLogs.map(log => [
-      log.nama, 
-      log.tipe === 'Masuk' ? t[lang].typeIn : t[lang].typeOut, 
-      log.jam, 
-      log.status,
+      log.nama, log.tipe, log.jam, log.status,
       new Date(log.created_at).toLocaleDateString()
     ]);
 
     // Hitung total karyawan unik dalam filter saat ini
-    const totalKaryawan = new Set(filteredLogs.map(l => l.nama)).size;
-    
-    // Tambahkan baris total di akhir
-    const footer = ["", "", "", t[lang].totalRow, totalKaryawan];
+    const uniqueNames = new Set(filteredLogs.map(log => log.nama));
+    const totalRow = ["", "", "", t[lang].csvTotal, uniqueNames.size];
 
     let csvContent = "data:text/csv;charset=utf-8," 
       + headers.join(",") + "\n" 
       + csvData.map(e => e.join(",")).join("\n")
-      + "\n\n" + footer.join(",");
+      + "\n\n" + totalRow.join(",");
 
     const link = document.createElement("a");
     link.setAttribute("href", encodeURI(csvContent));
@@ -224,40 +213,36 @@ export default function Admin() {
             </form>
           </div>
 
-          {/* FILTER TYPE (MENGGANTIKAN TABEL DAFTAR) */}
-          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 lg:col-span-2 shadow-sm relative overflow-hidden flex flex-col justify-center">
+          {/* TABEL KARYAWAN */}
+          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 lg:col-span-2 shadow-sm relative overflow-hidden flex flex-col h-[500px]">
             <div className="absolute top-0 left-0 w-1 h-full bg-indigo-400"></div>
-            <h2 className="text-xl font-black uppercase italic text-slate-900 mb-8">{t[lang].listTitle}</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <button 
-                onClick={() => setFilterType('All')}
-                className={`p-6 rounded-[2rem] border-2 transition-all flex flex-col items-center gap-2 ${filterType === 'All' ? 'border-indigo-600 bg-indigo-50/50' : 'border-slate-100 hover:border-indigo-200'}`}
-              >
-                <span className="text-2xl">📊</span>
-                <span className="font-black text-[10px] uppercase tracking-widest">{t[lang].all}</span>
-              </button>
-
-              <button 
-                onClick={() => setFilterType('Masuk')}
-                className={`p-6 rounded-[2rem] border-2 transition-all flex flex-col items-center gap-2 ${filterType === 'Masuk' ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-100 hover:border-emerald-200'}`}
-              >
-                <span className="text-2xl">🕒</span>
-                <span className="font-black text-[10px] uppercase tracking-widest">{t[lang].typeIn}</span>
-              </button>
-
-              <button 
-                onClick={() => setFilterType('Pulang')}
-                className={`p-6 rounded-[2rem] border-2 transition-all flex flex-col items-center gap-2 ${filterType === 'Pulang' ? 'border-rose-500 bg-rose-50/50' : 'border-slate-100 hover:border-rose-200'}`}
-              >
-                <span className="text-2xl">🚪</span>
-                <span className="font-black text-[10px] uppercase tracking-widest">{t[lang].typeOut}</span>
-              </button>
+            <div className="flex justify-between items-center mb-6">
+               <h2 className="text-xl font-black uppercase italic text-slate-900">{t[lang].listTitle}</h2>
+               <span className="text-[10px] font-black bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full uppercase italic">{karyawan.length} {t[lang].members}</span>
             </div>
-            
-            <div className="mt-8 pt-6 border-t border-slate-50 flex justify-between items-center text-slate-400 italic">
-               <span className="text-[10px] font-bold uppercase tracking-widest">{karyawan.length} {t[lang].members} Registered</span>
-               <span className="text-[10px] font-bold uppercase tracking-widest">{filteredLogs.length} Activities Shown</span>
+            <div className="overflow-y-auto pr-2 custom-scrollbar">
+              <table className="w-full text-left border-separate border-spacing-y-3">
+                <thead className="sticky top-0 bg-white z-10">
+                  <tr className="text-[9px] text-slate-400 font-black uppercase tracking-widest">
+                    <th className="pb-4 pl-4">{t[lang].colName}</th>
+                    <th className="pb-4 text-center">PIN</th>
+                    <th className="pb-4 text-center">{t[lang].colShift}</th>
+                    <th className="pb-4 text-right pr-4">{t[lang].colOpt}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {karyawan.map(k => (
+                    <tr key={k.id} className="bg-slate-50/50 hover:bg-slate-50 transition-all">
+                      <td className="py-4 pl-4 rounded-l-2xl font-black text-xs uppercase italic text-slate-700">{k.nama}</td>
+                      <td className="py-4 text-center font-mono text-indigo-600 font-bold tracking-widest text-xs">{k.pin}</td>
+                      <td className="py-4 text-center"><span className="text-[9px] font-bold bg-white border border-slate-200 px-2 py-1 rounded-lg uppercase">{k.shift}</span></td>
+                      <td className="py-4 text-right pr-4 rounded-r-2xl">
+                        <button onClick={() => deleteData('karyawan', k.id, k.nama)} className="text-rose-400 hover:text-rose-600 p-2"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -269,7 +254,16 @@ export default function Admin() {
                 <h3 className="font-black text-xs uppercase tracking-[0.3em] text-slate-500 italic">{t[lang].historyTitle}</h3>
                 <button onClick={exportToCSV} className="bg-emerald-500 hover:bg-emerald-600 text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase tracking-widest transition-all shadow-lg shadow-emerald-100">Export CSV</button>
              </div>
+             
+             {/* GROUP FILTER */}
              <div className="flex flex-wrap items-center gap-3">
+               {/* Filter Tipe */}
+               <select onChange={(e) => setFilterType(e.target.value)} className="bg-white border border-slate-200 text-[10px] font-bold p-2 rounded-xl outline-none focus:ring-2 focus:ring-indigo-100">
+                  <option value="All">{t[lang].filterAll}</option>
+                  <option value="Masuk">{t[lang].filterIn}</option>
+                  <option value="Pulang">{t[lang].filterOut}</option>
+               </select>
+               
                <input type="date" onChange={(e) => setFilterDate(e.target.value)} className="bg-white border border-slate-200 text-[10px] font-bold p-2 rounded-xl outline-none focus:ring-2 focus:ring-indigo-100" />
                <input type="text" placeholder={t[lang].searchPlace} onChange={(e) => setSearchTerm(e.target.value)} className="bg-white border border-slate-200 text-[10px] font-bold p-2 px-4 rounded-xl outline-none focus:ring-2 focus:ring-indigo-100 w-40" />
                <button onClick={fetchData} className="text-[9px] font-black uppercase text-indigo-600 hover:text-indigo-800 tracking-[0.2em] flex items-center gap-2 ml-2">
@@ -306,9 +300,7 @@ export default function Admin() {
                     <td className="p-8">
                       <div className="flex flex-col">
                         <span className="text-indigo-600 font-black text-lg font-mono tracking-tighter">{log.jam}</span>
-                        <span className={`text-[8px] uppercase font-black tracking-widest ${log.tipe === 'Masuk' ? 'text-emerald-500' : 'text-rose-500'}`}>
-                          {log.tipe === 'Masuk' ? t[lang].typeIn : t[lang].typeOut}
-                        </span>
+                        <span className="text-[8px] text-slate-400 uppercase font-black tracking-widest">{log.tipe}</span>
                       </div>
                     </td>
                     <td className="p-8 text-center">
