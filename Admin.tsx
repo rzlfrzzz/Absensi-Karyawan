@@ -1,87 +1,130 @@
-import React, { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
-import { Link } from 'react-router-dom';
 
-const Admin: React.FC = () => {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function Admin() {
+  const [karyawan, setKaryawan] = useState<any[]>([]);
+  const [logs, setLogs] = useState<any[]>([]);
+  const [settings, setSettings] = useState<any>({});
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  async function fetchData() {
-    try {
-      setLoading(true);
-      // Ganti 'profiles' dengan nama tabel yang ada di Supabase kamu
-      const { data: result, error: fetchError } = await supabase
-        .from('profiles') 
-        .select('*')
-        .order('created_at', { ascending: false });
+  const fetchData = async () => {
+    const { data: dKaryawan } = await supabase.from('karyawan').select('*');
+    const { data: dLogs } = await supabase.from('logs_absensi').select('*').order('created_at', { ascending: false });
+    const { data: dSett } = await supabase.from('settings').select('*').single();
+    
+    setKaryawan(dKaryawan || []);
+    setLogs(dLogs || []);
+    setSettings(dSett || {});
+  };
 
-      if (fetchError) throw fetchError;
-      setData(result || []);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const addKaryawan = async (nama: string, pin: string) => {
+    await supabase.from('karyawan').insert([{ nama, pin }]);
+    fetchData();
+  };
+
+  const updateJam = async (field: string, val: string) => {
+    await supabase.from('settings').update({ [field]: val }).eq('id', settings.id);
+    fetchData();
+  };
 
   return (
-    <div className="min-h-screen bg-[#020617] p-4 md:p-8">
-      {/* Header */}
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div>
-          <h2 className="text-3xl font-bold text-white tracking-tight">Data Management</h2>
-          <p className="text-slate-400">Monitoring database real-time</p>
-        </div>
-        <div className="flex gap-3">
-          <Link to="/" className="px-4 py-2 text-sm text-slate-300 hover:text-white transition-colors">← Kembali</Link>
-          <button onClick={fetchData} className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-lg text-sm font-medium shadow-lg transition-all">
-            Refresh Data
-          </button>
-        </div>
-      </div>
-
-      {/* Content Area */}
-      <div className="max-w-7xl mx-auto">
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-          </div>
-        ) : error ? (
-          <div className="bg-red-900/20 border border-red-500/50 p-4 rounded-xl text-red-200 text-center">
-            Gagal mengambil data: {error}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data.length === 0 ? (
-              <div className="col-span-full text-center py-20 bg-slate-900/50 rounded-3xl border border-slate-800">
-                <p className="text-slate-500 italic">Belum ada data tersedia di tabel ini.</p>
+    <div className="min-h-screen bg-[#020617] text-slate-200 p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        
+        {/* Header & Settings */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2 bg-white/5 p-8 rounded-[2rem] border border-white/10">
+            <h2 className="text-2xl font-bold mb-6 text-indigo-400">Settings Waktu Kerja</h2>
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <label className="text-xs font-bold text-slate-500 block mb-2">JAM MASUK</label>
+                <input type="time" defaultValue={settings.jam_masuk} onBlur={(e) => updateJam('jam_masuk', e.target.value)} className="bg-slate-900 border border-white/10 p-3 rounded-xl w-full" />
               </div>
-            ) : (
-              data.map((item, index) => (
-                <div key={index} className="group bg-slate-900/40 backdrop-blur-md border border-slate-800 p-6 rounded-2xl hover:border-indigo-500/50 transition-all duration-300 shadow-xl">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-mono text-indigo-400 bg-indigo-400/10 px-2 py-1 rounded">ID: {index + 1}</span>
-                    <div className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
-                  </div>
-                  <div className="space-y-2 overflow-hidden">
-                     {/* Menampilkan isi objek secara dinamis */}
-                    <pre className="text-sm text-slate-300 font-mono whitespace-pre-wrap">
-                      {JSON.stringify(item, null, 2)}
-                    </pre>
-                  </div>
-                </div>
-              ))
-            )}
+              <div>
+                <label className="text-xs font-bold text-slate-500 block mb-2">JAM PULANG</label>
+                <input type="time" defaultValue={settings.jam_pulang} onBlur={(e) => updateJam('jam_pulang', e.target.value)} className="bg-slate-900 border border-white/10 p-3 rounded-xl w-full" />
+              </div>
+            </div>
           </div>
-        )}
+          
+          <div className="bg-indigo-600 p-8 rounded-[2rem] shadow-xl shadow-indigo-500/20">
+            <h2 className="text-xl font-bold text-white mb-2">Total Terlambat</h2>
+            <p className="text-5xl font-black text-white">{logs.filter(l => l.status === 'Terlambat').length}</p>
+            <p className="text-indigo-200 text-sm mt-2">Karyawan hari ini</p>
+          </div>
+        </div>
+
+        {/* Analitik Data */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* Data Absen Terburuk */}
+          <div className="bg-white/5 p-8 rounded-[2rem] border border-white/10">
+            <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+              <span className="w-2 h-6 bg-red-500 rounded-full"></span> 
+              Perlu Perhatian (Absen Terburuk)
+            </h2>
+            <div className="space-y-4">
+              {karyawan.map(k => {
+                const totalLate = logs.filter(l => l.karyawan_id === k.id && l.status === 'Terlambat').length;
+                if (totalLate < 1) return null;
+                return (
+                  <div key={k.id} className="flex justify-between items-center p-4 bg-red-500/10 rounded-2xl border border-red-500/20">
+                    <span className="font-bold">{k.nama}</span>
+                    <span className="bg-red-500 text-white text-[10px] px-3 py-1 rounded-full">{totalLate}x Terlambat</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Registrasi PIN */}
+          <div className="bg-white/5 p-8 rounded-[2rem] border border-white/10">
+            <h2 className="text-xl font-bold mb-6 text-cyan-400">Registrasi Karyawan</h2>
+            <form className="space-y-4" onSubmit={(e:any) => {
+              e.preventDefault();
+              addKaryawan(e.target.nama.value, e.target.pin.value);
+              e.target.reset();
+            }}>
+              <input name="nama" placeholder="Nama Karyawan" className="w-full bg-slate-900 p-4 rounded-2xl border border-white/10" required />
+              <input name="pin" placeholder="PIN (4 Digit)" maxLength={4} className="w-full bg-slate-900 p-4 rounded-2xl border border-white/10" required />
+              <button className="w-full bg-cyan-600 py-4 rounded-2xl font-bold hover:bg-cyan-500 transition-all">DAFTARKAN PIN</button>
+            </form>
+          </div>
+
+        </div>
+
+        {/* Tabel Rekap Log */}
+        <div className="bg-white/5 rounded-[2rem] border border-white/10 overflow-hidden">
+          <table className="w-full text-left">
+            <thead className="bg-white/5 text-slate-500 text-xs tracking-widest uppercase">
+              <tr>
+                <th className="p-6">Karyawan</th>
+                <th className="p-6">Tipe</th>
+                <th className="p-6">Jam</th>
+                <th className="p-6">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {logs.map(log => (
+                <tr key={log.id} className="hover:bg-white/5 transition-all">
+                  <td className="p-6 font-bold">{log.nama}</td>
+                  <td className="p-6"><span className="bg-slate-800 px-3 py-1 rounded-lg text-[10px]">{log.tipe}</span></td>
+                  <td className="p-6 text-slate-400">{log.jam}</td>
+                  <td className="p-6">
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-black ${
+                      log.status === 'On Time' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+                    }`}>{log.status}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
       </div>
     </div>
   );
-};
-
-export default Admin;
+}
