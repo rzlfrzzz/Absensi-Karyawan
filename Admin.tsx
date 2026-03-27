@@ -62,7 +62,7 @@ export default function Admin() {
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-2">Shift Kerja</label>
-                <select name="shift" className="w-full bg-slate-900 border border-white/5 p-4 rounded-2xl text-sm text-slate-400 focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none">
+                <select name="shift" className="w-full bg-slate-900 border border-white/5 p-4 rounded-2xl text-sm text-slate-400 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
                   <option value="Siang">Shift Siang (Pagi - Sore)</option>
                   <option value="Malam">Shift Malam (Malam - Pagi)</option>
                 </select>
@@ -101,9 +101,6 @@ export default function Admin() {
                   </div>
                 );
               })}
-              {karyawan.every(k => logs.filter(l => l.karyawan_id === k.id && (l.status === 'Terlambat' || l.status === 'Pulang Cepat')).length === 0) && (
-                <div className="col-span-2 text-center py-10 opacity-30 text-xs italic tracking-widest uppercase">Semua karyawan disiplin hari ini</div>
-              )}
             </div>
           </div>
         </div>
@@ -133,7 +130,7 @@ export default function Admin() {
                     <td className="p-8">
                       <div className="flex flex-col">
                         <span className="font-black text-white uppercase group-hover:text-indigo-400 transition-colors tracking-tight">{log.nama}</span>
-                        <span className="text-[9px] text-slate-500 font-mono tracking-tighter opacity-50">UID: {log.id.slice(0,8)}</span>
+                        <span className="text-[9px] text-slate-500 font-mono tracking-tighter opacity-50">ID: {log.id.slice(0,8)}</span>
                       </div>
                     </td>
                     <td className="p-8">
@@ -145,4 +142,26 @@ export default function Admin() {
                       </div>
                     </td>
                     <td className="p-8 text-center">
-                      <span className={`px-6 py-2 rounded-full text-[9px] font-black uppercase tracking-
+                      <span className={`px-6 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.2em] shadow-2xl inline-block ${
+                        log.status === 'On Time' 
+                        ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
+                        : 'bg-red-500/10 text-red-500 border border-red-500/20 animate-pulse'
+                      }`}>{log.status}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+      
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+      `}</style>
+    </div>
+  );
+}
