@@ -10,9 +10,10 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filterDate, setFilterDate] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(''); // Untuk Riwayat
+  const [searchKaryawan, setSearchKaryawan] = useState(''); // State Baru: Untuk Daftar Karyawan
   const [filterType, setFilterType] = useState('ALL');
-  const [filterJabatan, setFilterJabatan] = useState('ALL'); // State Filter Jabatan
+  const [filterJabatan, setFilterJabatan] = useState('ALL');
   
   const [lang, setLang] = useState<'ID' | 'CN'>('ID');
 
@@ -52,7 +53,15 @@ export default function Admin() {
       filterIn: "Masuk",
       filterOut: "Pulang",
       filterJabatanAll: "Semua Jabatan",
-      totalExport: "Total Karyawan Unik"
+      totalExport: "Total Karyawan Unik",
+      // Daftar Jabatan ID
+      j_hrd: "HRD",
+      j_spv: "Supervisor",
+      j_adm: "Admin",
+      j_tailor: "Penjahit",
+      j_helper: "Helper",
+      j_picker: "Picker",
+      j_packing: "Packing"
     },
     CN: {
       back: "后台",
@@ -89,11 +98,28 @@ export default function Admin() {
       filterIn: "上班签到",
       filterOut: "下班签退",
       filterJabatanAll: "所有职位",
-      totalExport: "唯一员工总数"
+      totalExport: "唯一员工总数",
+      // Daftar Jabatan CN
+      j_hrd: "人力资源 (HRD)",
+      j_spv: "主管 (Supervisor)",
+      j_adm: "行政 (Admin)",
+      j_tailor: "裁缝 (Penjahit)",
+      j_helper: "助手 (Helper)",
+      j_picker: "拣货员 (Picker)",
+      j_packing: "包装员 (Packing)"
     }
   };
 
-  const daftarJabatan = ["HRD", "Supervisor", "Admin", "Penjahit", "Helper", "Picker", "Packing"];
+  // Objek Jabatan untuk Sinkronisasi Bahasa
+  const daftarJabatan = [
+    { id: "HRD", label: t[lang].j_hrd },
+    { id: "Supervisor", label: t[lang].j_spv },
+    { id: "Admin", label: t[lang].j_adm },
+    { id: "Penjahit", label: t[lang].j_tailor },
+    { id: "Helper", label: t[lang].j_helper },
+    { id: "Picker", label: t[lang].j_picker },
+    { id: "Packing", label: t[lang].j_packing }
+  ];
 
   useEffect(() => { fetchData(); }, []);
 
@@ -143,33 +169,38 @@ export default function Admin() {
     }
   };
 
+  // Filter untuk Daftar Karyawan
+  const filteredKaryawan = karyawan.filter(k => 
+    k.nama.toLowerCase().includes(searchKaryawan.toLowerCase())
+  );
+
+  // Filter untuk Riwayat Logs
   const filteredLogs = logs.filter(log => {
     const matchesDate = filterDate ? log.created_at.startsWith(filterDate) : true;
     const matchesSearch = log.nama.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'ALL' ? true : log.tipe.toUpperCase() === filterType;
     const matchesJabatan = filterJabatan === 'ALL' ? true : log.jabatan === filterJabatan;
-    
     return matchesDate && matchesSearch && matchesType && matchesJabatan;
   });
+
+  // Fungsi helper untuk menampilkan label jabatan yang sesuai bahasa
+  const getJabatanLabel = (id: string) => {
+    const found = daftarJabatan.find(j => j.id === id);
+    return found ? found.label : id;
+  };
 
   const exportToCSV = () => {
     const headers = [t[lang].colName, t[lang].colJabatan, t[lang].colTime.split(' ')[2], t[lang].colTime.split(' ')[0], t[lang].colStatus, 'Tanggal'];
     const csvData = filteredLogs.map(log => [
       log.nama, 
-      log.jabatan || '-',
+      getJabatanLabel(log.jabatan),
       log.tipe, 
       log.jam, 
       log.status,
       new Date(log.created_at).toLocaleDateString(lang === 'ID' ? 'id-ID' : 'zh-CN')
     ]);
-
     const uniqueEmployees = new Set(filteredLogs.map(log => log.nama)).size;
-
-    let csvContent = "data:text/csv;charset=utf-8," 
-      + headers.join(",") + "\n" 
-      + csvData.map(e => e.join(",")).join("\n")
-      + `\n\n${t[lang].totalExport},${uniqueEmployees}`;
-
+    let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + csvData.map(e => e.join(",")).join("\n") + `\n\n${t[lang].totalExport},${uniqueEmployees}`;
     const link = document.createElement("a");
     link.setAttribute("href", encodeURI(csvContent));
     link.setAttribute("download", `Laporan_${new Date().toISOString().split('T')[0]}.csv`);
@@ -209,9 +240,9 @@ export default function Admin() {
               <input name="nama" placeholder={t[lang].namePlace} className="w-full bg-slate-50 border border-slate-100 p-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-100 transition-all" required />
               <input name="pin" placeholder={t[lang].pinPlace} maxLength={4} className="w-full bg-white border border-slate-100 p-4 rounded-2xl text-sm font-mono tracking-widest outline-none focus:ring-2 focus:ring-indigo-100 transition-all" required />
               
-              <select name="jabatan" className="w-full bg-white border border-slate-100 p-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-100" required>
+              <select name="jabatan" className="w-full bg-white border border-slate-100 p-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-100 italic font-bold text-slate-600" required>
                 <option value="" disabled selected>{t[lang].colJabatan}</option>
-                {daftarJabatan.map(j => <option key={j} value={j}>{j}</option>)}
+                {daftarJabatan.map(j => <option key={j.id} value={j.id}>{j.label}</option>)}
               </select>
 
               <select name="shift" className="w-full bg-white border border-slate-100 p-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-100">
@@ -228,8 +259,17 @@ export default function Admin() {
           <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 lg:col-span-2 shadow-sm relative overflow-hidden flex flex-col h-[500px]">
             <div className="absolute top-0 left-0 w-1 h-full bg-indigo-400"></div>
             <div className="flex justify-between items-center mb-6">
-               <h2 className="text-xl font-black uppercase italic text-slate-900">{t[lang].listTitle}</h2>
-               <span className="text-[10px] font-black bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full uppercase italic">{karyawan.length} {t[lang].members}</span>
+               <div className="flex flex-col">
+                <h2 className="text-xl font-black uppercase italic text-slate-900">{t[lang].listTitle}</h2>
+                <span className="text-[10px] font-black text-indigo-400 uppercase italic">{karyawan.length} {t[lang].members}</span>
+               </div>
+               {/* INPUT CARI KARYAWAN BARU */}
+               <input 
+                type="text" 
+                placeholder={t[lang].searchPlace} 
+                onChange={(e) => setSearchKaryawan(e.target.value)}
+                className="bg-slate-50 border border-slate-100 text-[10px] font-bold p-2 px-4 rounded-xl outline-none focus:ring-2 focus:ring-indigo-100 w-48 shadow-inner"
+               />
             </div>
             <div className="overflow-y-auto pr-2 custom-scrollbar">
               <table className="w-full text-left border-separate border-spacing-y-3">
@@ -243,10 +283,12 @@ export default function Admin() {
                   </tr>
                 </thead>
                 <tbody>
-                  {karyawan.map(k => (
+                  {filteredKaryawan.map(k => (
                     <tr key={k.id} className="bg-slate-50/50 hover:bg-slate-50 transition-all">
                       <td className="py-4 pl-4 rounded-l-2xl font-black text-xs uppercase italic text-slate-700">{k.nama}</td>
-                      <td className="py-4 text-center text-[10px] font-bold text-slate-500 uppercase">{k.jabatan || '-'}</td>
+                      <td className="py-4 text-center text-[9px] font-black text-indigo-400 uppercase italic">
+                        {getJabatanLabel(k.jabatan)}
+                      </td>
                       <td className="py-4 text-center font-mono text-indigo-600 font-bold tracking-widest text-xs">{k.pin}</td>
                       <td className="py-4 text-center"><span className="text-[9px] font-bold bg-white border border-slate-200 px-2 py-1 rounded-lg uppercase">{k.shift}</span></td>
                       <td className="py-4 text-right pr-4 rounded-r-2xl">
@@ -275,7 +317,7 @@ export default function Admin() {
                 className="bg-white border border-slate-200 text-[10px] font-bold p-2 rounded-xl outline-none focus:ring-2 focus:ring-indigo-100"
                >
                  <option value="ALL">{t[lang].filterJabatanAll}</option>
-                 {daftarJabatan.map(j => <option key={j} value={j}>{j}</option>)}
+                 {daftarJabatan.map(j => <option key={j.id} value={j.id}>{j.label}</option>)}
                </select>
 
                <select 
@@ -333,7 +375,7 @@ export default function Admin() {
                     </td>
                     <td className="p-8">
                         <p className="text-slate-900 font-black uppercase text-xs tracking-tight">{log.nama}</p>
-                        <p className="text-[8px] text-indigo-500 font-black uppercase tracking-widest">{log.jabatan || 'No Job'}</p>
+                        <p className="text-[8px] text-indigo-500 font-black uppercase tracking-widest">{getJabatanLabel(log.jabatan)}</p>
                         <p className="text-[9px] text-slate-400 font-bold uppercase mt-1 tracking-tighter italic">
                           {new Date(log.created_at).toLocaleDateString(lang === 'ID' ? 'id-ID' : 'zh-CN', { weekday: 'long', day: 'numeric', month: 'long' })}
                         </p>
