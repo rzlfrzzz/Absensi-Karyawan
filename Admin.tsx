@@ -131,7 +131,7 @@ export default function Admin() {
               <input name="pin" placeholder="PIN (4 Digit)" maxLength={4} className="w-full bg-white border border-slate-100 p-4 rounded-2xl text-sm font-mono tracking-widest outline-none focus:ring-2 focus:ring-indigo-100 transition-all" required />
               <select name="shift" className="w-full bg-white border border-slate-100 p-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-100">
                 <option value="Siang">Shift Siang (08:00 - 17:00)</option>
-                <option value="Malam">Shift Malam (20:00 - 05:00)</option>
+                <option value="Malam">Shift Malam (17:15 - 02:15)</option>
               </select>
               <button 
                 disabled={isSubmitting} 
