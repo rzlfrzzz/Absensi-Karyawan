@@ -260,11 +260,7 @@ docs/
 ├── INSTALLATION.md          # Setup instructions
 ├── ARCHITECTURE.md          # System architecture
 ├── PROJECT_STRUCTURE.md     # This file
-├── API.md                   # API documentation
-├── DATABASE.md              # Database schema
-├── DEPLOYMENT.md            # Deployment guide
-├── TROUBLESHOOTING.md       # Troubleshooting
-└── DEVELOPMENT.md           # Development guide
+└── TROUBLESHOOTING.md       # Troubleshooting
 ```
 
 ---
