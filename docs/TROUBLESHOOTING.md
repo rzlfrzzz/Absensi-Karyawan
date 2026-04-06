@@ -8,7 +8,7 @@
 
 ### ❌ "Cannot find module '@/...'"
 
-**Cause:** TypeScript path alias tidak resolveπ
+**Cause:** TypeScript path alias tidak resolve
 
 **Solution:**
 ```bash

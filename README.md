@@ -19,5 +19,5 @@
 - **Untuk contoh demo klik [disini](https://absensi-karyawan-ten.vercel.app/)**
 
 ## Butuh Bantuan?
-- **Hubungi saya via e-mail [disini](rezaalfarizi88.ra@gmail.com)**
+- **Hubungi saya via e-mail [disini](mailto:rezaalfarizi88.ra@gmail.com)**
 - **Atau Whatsapp [disini](https://wa.me/+6285136448070)**

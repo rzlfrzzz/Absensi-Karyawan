@@ -219,9 +219,7 @@ npm run dev
 | `src/main.tsx` | Entry point |
 | `.env.local` | Your credentials (KEEP SECRET!) |
 | `.env.example` | Credential template |
-| `PROJECT_STRUCTURE.md` | Project overview |
-| `MIGRATION.md` | Before/after guide |
-| `README_REFACTORING.md` | Detailed explanation |
+| `docs/PROJECT_STRUCTURE.md` | Project overview |
 
 ---
 
