@@ -23,7 +23,6 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      // Memudahkan import jika project semakin besar
       '@': '/src',
     },
   },
