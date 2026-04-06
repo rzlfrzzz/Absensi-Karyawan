@@ -15,5 +15,8 @@
 - **Butuh referensi?** → Baca [docs/PROJECT_STRUCTURE.md](./docs/PROJECT_STRUCTURE.md)
 
 ---
+## Contoh
+https://absensi-karyawan-ten.vercel.app/
 
-## ✨ Fitur Utama
+## Butuh Bantuan?
+rezaalfarizi88.ra@gmail.com
