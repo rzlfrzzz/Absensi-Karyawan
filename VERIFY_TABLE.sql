@@ -1,5 +1,3 @@
--- 🔍 VERIFY: Check apakah column jabatan ada
-
 -- Query 1: Check semua columns
 SELECT 
   column_name,
