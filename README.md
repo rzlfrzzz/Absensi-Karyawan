@@ -8,4 +8,12 @@
 
 ---
 
+## 🚀 Mulai dari Sini
+
+- **Pemula?** → Baca [QUICK_START.md](./QUICK_START.md) (5 menit setup)
+- **Ingin tahu arsitektur?** → Lihat [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
+- **Butuh referensi?** → Baca [docs/PROJECT_STRUCTURE.md](./docs/PROJECT_STRUCTURE.md)
+
+---
+
 ## ✨ Fitur Utama
