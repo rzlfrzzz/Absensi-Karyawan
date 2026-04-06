@@ -118,19 +118,19 @@ export const LoginPage = () => {
               <div className="flex justify-between">
                 <span className="text-slate-600">Admin:</span>
                 <span className="text-slate-900 font-mono font-bold">
-                  admin / admin123
+                  admin@absensi.com / Admin@123456
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-600">HR:</span>
+                <span className="text-slate-900 font-mono font-bold">
+                  hr@absensi.com / HR@123456
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-600">Manager:</span>
                 <span className="text-slate-900 font-mono font-bold">
-                  manager / manager123
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-600">Staff:</span>
-                <span className="text-slate-900 font-mono font-bold">
-                  staff / staff123
+                  manager@absensi.com / Manager@123456
                 </span>
               </div>
             </div>
