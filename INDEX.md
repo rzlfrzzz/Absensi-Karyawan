@@ -175,7 +175,7 @@ A: Ada di [QUICK_START.md](./QUICK_START.md) atau tanya maintainer
 2. **Search Issues** - Lihat GitHub issues
 3. **Check Logs** - DevTools console (F12)
 4. **Read Code** - Lihat source di `src/`
-5. **Ask Team** - Hubungi team development
+5. **Ask Team** - [Hubungi team development](https://github.com/rzlfrzzz/Absensi-Karyawan/blob/main/README.md#butuh-bantuan)
 
 ---
 
